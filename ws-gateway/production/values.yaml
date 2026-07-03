@@ -1,0 +1,20 @@
+replicaCount: 2
+image:
+  repository: ghcr.io/sirvickky001/pulsechat-ws-gateway
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 4001
+env:
+  NODE_ENV: production
+  API_URL: http://pulsechat-api:4000
+  REDIS_URL: redis://redis:6379
+  JWT_SECRET: change-in-production
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi

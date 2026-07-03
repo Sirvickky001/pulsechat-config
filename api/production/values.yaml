@@ -1,0 +1,22 @@
+replicaCount: 2
+image:
+  repository: ghcr.io/sirvickky001/pulsechat-api
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 4000
+env:
+  NODE_ENV: production
+  PGHOST: postgres
+  PGPORT: "5432"
+  PGUSER: pulsechat
+  PGDATABASE: pulsechat
+  JWT_SECRET: change-in-production
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi

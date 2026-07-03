@@ -1,0 +1,18 @@
+replicaCount: 1
+image:
+  repository: ghcr.io/sirvickky001/pulsechat-presence
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 4002
+env:
+  NODE_ENV: production
+  REDIS_URL: redis://redis:6379
+resources:
+  requests:
+    cpu: 25m
+    memory: 32Mi
+  limits:
+    cpu: 100m
+    memory: 64Mi
