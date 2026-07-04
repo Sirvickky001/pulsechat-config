@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pulsechat-schema-init
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: schema-init
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h postgres -U pulsechat; do sleep 2; done
+              psql -h postgres -U pulsechat -d pulsechat -c "
+                CREATE TABLE IF NOT EXISTS users (
+                  id SERIAL PRIMARY KEY,
+                  username VARCHAR(50) UNIQUE NOT NULL,
+                  password_hash VARCHAR(255) NOT NULL,
+                  created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE TABLE IF NOT EXISTS rooms (
+                  id SERIAL PRIMARY KEY,
+                  name VARCHAR(100) UNIQUE NOT NULL,
+                  created_by INTEGER REFERENCES users(id),
+                  created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE TABLE IF NOT EXISTS messages (
+                  id SERIAL PRIMARY KEY,
+                  room_id INTEGER REFERENCES rooms(id) ON DELETE CASCADE,
+                  user_id INTEGER REFERENCES users(id),
+                  username VARCHAR(50) NOT NULL,
+                  content TEXT NOT NULL,
+                  created_at TIMESTAMPTZ DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_messages_room_id ON messages(room_id);
+                INSERT INTO rooms (name) VALUES ('general') ON CONFLICT (name) DO NOTHING;
+              "
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pulsechat-secrets
+                  key: pg-password
