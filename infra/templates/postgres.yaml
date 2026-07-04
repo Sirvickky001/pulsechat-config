@@ -19,6 +19,8 @@ spec:
           image: postgres:16-alpine
           ports:
             - containerPort: 5432
+          imagePullPolicy: Never
+
           env:
             - name: POSTGRES_USER
               value: pulsechat
