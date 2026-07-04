@@ -1,0 +1,14 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: ws-gateway-health-check
+spec:
+  metrics:
+    - name: health-check
+      interval: 10s
+      successCondition: result == "ok"
+      failureLimit: 3
+      provider:
+        web:
+          url: "http://pulsechat-ws-gateway.{{ .Release.Namespace }}.svc.cluster.local:4001/health"
+          jsonPath: "{$.status}"

@@ -1,0 +1,69 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: pulsechat-ws-gateway
+  labels:
+    app: pulsechat-ws-gateway
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: pulsechat-ws-gateway
+  template:
+    metadata:
+      labels:
+        app: pulsechat-ws-gateway
+    spec:
+      containers:
+        - name: ws-gateway
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 4001
+          env:
+            - name: NODE_ENV
+              value: {{ .Values.env.NODE_ENV }}
+            - name: PORT
+              value: "4001"
+            - name: API_URL
+              value: {{ .Values.env.API_URL }}
+            - name: REDIS_URL
+              value: {{ .Values.env.REDIS_URL }}
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: pulsechat-secrets
+                  key: jwt-secret
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4001
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 4001
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
+  strategy:
+    canary:
+      analysis:
+        templates:
+          - templateName: ws-gateway-health-check
+        startingStep: 1
+      steps:
+        - setWeight: 5
+        - pause: {duration: 30s}
+        - setWeight: 25
+        - pause: {duration: 30s}
+        - setWeight: 50
+        - pause: {duration: 30s}
+        - setWeight: 100

@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pulsechat-api
+  labels:
+    app: pulsechat-api
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: pulsechat-api
+  template:
+    metadata:
+      labels:
+        app: pulsechat-api
+    spec:
+      containers:
+        - name: api
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 4000
+          env:
+            - name: NODE_ENV
+              value: {{ .Values.env.NODE_ENV }}
+            - name: PORT
+              value: "4000"
+            - name: PGHOST
+              value: {{ .Values.env.PGHOST }}
+            - name: PGPORT
+              value: {{ .Values.env.PGPORT | quote }}
+            - name: PGUSER
+              value: {{ .Values.env.PGUSER }}
+            - name: PGDATABASE
+              value: {{ .Values.env.PGDATABASE }}
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pulsechat-secrets
+                  key: pg-password
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: pulsechat-secrets
+                  key: jwt-secret
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 4000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
