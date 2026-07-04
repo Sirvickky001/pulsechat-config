@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
   repository: ghcr.io/sirvickky001/pulsechat-ws-gateway
-  tag: latest
+  tag: sha-06bb3a5
   pullPolicy: IfNotPresent
 service:
   type: ClusterIP
