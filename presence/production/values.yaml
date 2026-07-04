@@ -1,7 +1,7 @@
 replicaCount: 1
 image:
   repository: ghcr.io/sirvickky001/pulsechat-presence
-  tag: sha-7d61e67
+  tag: sha-06bb3a5
   pullPolicy: IfNotPresent
 service:
   type: ClusterIP
