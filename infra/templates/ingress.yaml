@@ -46,3 +46,5 @@ spec:
                 name: pulsechat-api
                 port:
                   number: 4000
+
+#ingress                  
